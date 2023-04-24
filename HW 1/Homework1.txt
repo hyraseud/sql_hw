@@ -1,0 +1,312 @@
+CS 348 - Homework 1: SQL (Joins, Aggregations, Set Operators)
+(100 Points)
+Fall 2022
+
+Due on: 9/11/2022 at 11:59 pm 
+This assignment is to be completed by individuals. 
+There will be a 10% penalty if the homework is submitted 24 hours after the due date, a 20% penalty if the homework is submitted 48 hours after the due date, or a 30% penalty if the homework is submitted 72 hours after the due date. The homework will not be accepted after 72 hours, as a solution will be posted by then.
+
+Submission Instructions: 
+Submit your answers using the hw1.py skeleton file included with this assignment (look at the homework tab in Brightspace/content). The python file is read by the autograder. It is important to have a syntax-error free file. The first and most important step is to write your Purdue username in the username function. Then, write your queries in the query1 to query15 functions. Your query answer should have the same attributes(columns) exactly in the same order as the expected result shown in each question. However, the rows can be in any order (i.e., you do not need to sort your rows). Column headers can be different. Before submitting your Python file execute the file using the command: Python3 hw1.py The output should contain all of your queries. Getting the correct output ensures that the autograder will be able to read your queries.
+
+Submit your hw1.py in Brightspace/Assignments/Assignment 1
+Make sure you submit the right file. 
+
+Database import instructions:
+For this assignment, use vieo_games.db SQLite database included with this assignment. You can open the database by simply typing .open video_games.db in the SQLite shell. For nice layout in SQLite shell, run the commands 
+.mode column 
+.headers on
+
+Grading:
+This assignment will be auto-graded using SQLite. You are highly encouraged to use the same database to test your queries before submitting your assignment. Grading will use a different data set than the one given to students to test their queries. Therefore, make sure your queries are robust and that they work on any data instance. There is no partial credit in this homework.
+
+
+===================================================================
+Database:
+
+This database is a modified version of the following dataset about video games sales.
+Dataset source: https://www.kaggle.com/datasets/gregorut/videogamesales
+
+Database Schema:
+
+CREATE TABLE video_game(
+   rank integer PRIMARY KEY,
+   name text,
+   platform_id integer, // foriegn key to platform.platform_id
+   year integer,
+   genre text,
+   publisher_id integer // foriegn key to developer.id
+); 
+// platform is the console where users can play the video game (e.g., PlayStation 4)
+// publisher is the company/developr that developed the game
+
+
+CREATE TABLE region(
+   id integer PRIMARY KEY,
+   name text,
+   population integer
+);
+
+CREATE TABLE games_sales(
+   region_id integer, // foreign key to region.id
+   game_rank integer, // foreign key to video_game.rank
+   sales real,
+   PRIMARY KEY (region_id, game_rank)
+);
+
+CREATE TABLE developer(
+   id integer PRIMARY KEY,
+   name text,
+   headquarters text
+);
+
+CREATE TABLE platform(
+   platform_id integer PRIMARY KEY,
+   platform_name text,
+   introductory_price_us integer,
+   units_sold integer,
+   developer_id integer  // foreign key to developer.id
+);
+
+// developer is the company that made the platform/console (e.g., Sony made PlayStation)
+
+//Note: Every video game and platform has a developer. Therefore, both the video_game and platform tables have foreign keys to the developer table. It is important to pick the right connection (foreign key link) when joining tables.
+
+Q1) (6 points)
+List the sales for the top three ranked video games. Include the attributes in the expected output below.
+
+reminder: your output should have the same columns in the same order. The rows can be in any order. Column headers can be different.
+
+Expected output:
+
+rank  name               year  genre     sales  name
+----  -----------------  ----  --------  -----  -----------------
+1     Wii Sports         2006  Sports    29.02  European Union
+1     Wii Sports         2006  Sports    3.77   Japan
+1     Wii Sports         2006  Sports    41.49  North America
+1     Wii Sports         2006  Sports    8.46   Rest of the World
+2     Super Mario Bros.  1985  Platform  3.58   European Union
+2     Super Mario Bros.  1985  Platform  6.81   Japan
+2     Super Mario Bros.  1985  Platform  29.08  North America
+2     Super Mario Bros.  1985  Platform  0.77   Rest of the World
+3     Mario Kart Wii     2008  Racing    12.88  European Union
+3     Mario Kart Wii     2008  Racing    3.79   Japan
+3     Mario Kart Wii     2008  Racing    15.85  North America
+3     Mario Kart Wii     2008  Racing    3.31   Rest of the World
+
+Q2) (6 points)
+List the top 20 ranked video games along with their platforms (consoles). Include the attributes in the expected output below.
+
+Note: the outpur is very wide, you may want to disable text wrapping for a better view (e.g., using Alt+z in VS Code).
+
+Expected output:
+rank  name                                          year  genre         platform_name
+----  --------------------------------------------  ----  ------------  -------------
+1     Wii Sports                                    2006  Sports        Wii
+2     Super Mario Bros.                             1985  Platform      NES
+3     Mario Kart Wii                                2008  Racing        Wii
+4     Wii Sports Resort                             2009  Sports        Wii
+5     Pokemon Red/Pokemon Blue                      1996  Role-Playing  GB
+6     Tetris                                        1989  Puzzle        GB
+7     New Super Mario Bros.                         2006  Platform      DS
+8     Wii Play                                      2006  Misc          Wii
+9     New Super Mario Bros. Wii                     2009  Platform      Wii
+10    Duck Hunt                                     1984  Shooter       NES
+11    Nintendogs                                    2005  Simulation    DS
+12    Mario Kart DS                                 2005  Racing        DS
+13    Pokemon Gold/Pokemon Silver                   1999  Role-Playing  GB
+14    Wii Fit                                       2007  Sports        Wii
+15    Wii Fit Plus                                  2009  Sports        Wii
+16    Kinect Adventures!                            2010  Misc          X360
+17    Grand Theft Auto V                            2013  Action        PS3
+18    Grand Theft Auto: San Andreas                 2004  Action        PS2
+19    Super Mario World                             1990  Platform      SNES
+20    Brain Age: Train Your Brain in Minutes a Day  2005  Misc          DS
+
+Q3) (7 points)
+List the game publisher and the platform manufacturer for each video game ranked in the top twenty. In this question, you need to include the developer table twice (e.g., developer d1, developer d2) and join one copy with video_game and the other with platform.
+
+Expected output:
+rank  name                                          platform_name  game_publisher        platform_manufacturer
+----  --------------------------------------------  -------------  --------------------  ---------------------
+1     Wii Sports                                    Wii            Nintendo              Nintendo
+2     Super Mario Bros.                             NES            Nintendo              Nintendo
+3     Mario Kart Wii                                Wii            Nintendo              Nintendo
+4     Wii Sports Resort                             Wii            Nintendo              Nintendo
+5     Pokemon Red/Pokemon Blue                      GB             Nintendo              Nintendo
+6     Tetris                                        GB             Nintendo              Nintendo
+7     New Super Mario Bros.                         DS             Nintendo              Nintendo
+8     Wii Play                                      Wii            Nintendo              Nintendo
+9     New Super Mario Bros. Wii                     Wii            Nintendo              Nintendo
+10    Duck Hunt                                     NES            Nintendo              Nintendo
+11    Nintendogs                                    DS             Nintendo              Nintendo
+12    Mario Kart DS                                 DS             Nintendo              Nintendo
+13    Pokemon Gold/Pokemon Silver                   GB             Nintendo              Nintendo
+14    Wii Fit                                       Wii            Nintendo              Nintendo
+15    Wii Fit Plus                                  Wii            Nintendo              Nintendo
+16    Kinect Adventures!                            X360           Microsoft             Microsoft
+17    Grand Theft Auto V                            PS3            Take-Two Interactive  Sony
+18    Grand Theft Auto: San Andreas                 PS2            Take-Two Interactive  Sony
+19    Super Mario World                             SNES           Nintendo              Nintendo
+20    Brain Age: Train Your Brain in Minutes a Day  DS             Nintendo              Nintendo
+
+
+Q4) (6 points)
+Now let's join all five tables. List the following attributes for each video game. Include only video games whose rank is in the top three.
+
+Expected output:
+rank  name               platform_name  publisher  p_man     sales  region
+----  -----------------  -------------  ---------  --------  -----  -----------------
+1     Wii Sports         Wii            Nintendo   Nintendo  41.49  North America
+1     Wii Sports         Wii            Nintendo   Nintendo  29.02  European Union
+1     Wii Sports         Wii            Nintendo   Nintendo  3.77   Japan
+1     Wii Sports         Wii            Nintendo   Nintendo  8.46   Rest of the World
+2     Super Mario Bros.  NES            Nintendo   Nintendo  29.08  North America
+2     Super Mario Bros.  NES            Nintendo   Nintendo  3.58   European Union
+2     Super Mario Bros.  NES            Nintendo   Nintendo  6.81   Japan
+2     Super Mario Bros.  NES            Nintendo   Nintendo  0.77   Rest of the World
+3     Mario Kart Wii     Wii            Nintendo   Nintendo  15.85  North America
+3     Mario Kart Wii     Wii            Nintendo   Nintendo  12.88  European Union
+3     Mario Kart Wii     Wii            Nintendo   Nintendo  3.79   Japan
+3     Mario Kart Wii     Wii            Nintendo   Nintendo  3.31   Rest of the World
+
+
+Q5) (6 points)
+Adjust the query in the previous question to list the total sales for each video game and discard the detailed sales in each region.
+
+Expected output:
+rank  name               platform_name  publisher  p_man     total_sales
+----  -----------------  -------------  ---------  --------  -----------
+1     Wii Sports         Wii            Nintendo   Nintendo  82.74
+2     Super Mario Bros.  NES            Nintendo   Nintendo  40.24
+3     Mario Kart Wii     Wii            Nintendo   Nintendo  35.83
+
+Q6) (4 points)
+List all game genres. Remove duplicates.
+
+Expected output:
+genre
+------------
+Action
+Fighting
+Misc
+Platform
+Puzzle
+Racing
+Role-Playing
+Shooter
+Simulation
+Sports
+
+Q7) (5 points)
+List all genres with the number of video games in each one.
+
+Expected output:
+genre         games_in_genre
+------------  --------------
+Action        7
+Fighting      1
+Misc          3
+Platform      8
+Puzzle        2
+Racing        5
+Role-Playing  8
+Shooter       10
+Simulation    2
+Sports        4
+
+Q8) (5 points)
+Modify the previous result to keep only genres with five or more games.
+
+Expected output:
+genre         games_in_genre
+------------  --------------
+Action        7
+Platform      8
+Racing        5
+Role-Playing  8
+Shooter       10
+
+Q9) (7 points)
+List genre-year pairs with the count of games and total sales in each pair. Keep only genre-year pair with two games or more.
+
+Expected output:
+genre       year  games_in_genre_year  total_sales
+----------  ----  -------------------  -----------
+Shooter     2010  2                    27.37
+Shooter     2012  2                    27.78
+Shooter     2011  2                    28.23
+Simulation  2005  2                    37.03
+Action      2013  2                    37.77
+Sports      2009  2                    55.0
+
+
+Q10) (8 points)
+List pairs of games that have the same genre, work on the same platform, and published by the same publisher in the same year.
+
+Expected output:
+rank  name               rank  name
+----  -----------------  ----  ---------------------------
+4     Wii Sports Resort  15    Wii Fit Plus
+11    Nintendogs         42    Animal Crossing: Wild World
+
+
+Q11) (8 points)
+List all regions with their total sales in all games. 
+
+Expected output:
+European Union     284.42
+Japan              140.54
+North America      491.49
+Oceania
+Rest of the World  94.71
+South America
+
+
+Q12) (8 points)
+Some developers (companies) publish/develop games, make platforms (consoles), or do both. List all developers with the number of games they published and the platforms they made.
+
+Expected output:
+name                  number_of_games  number_of_platforms
+--------------------  ---------------  -------------------
+Activision            8                0
+Microsoft             2                1
+Nintendo              32               8
+Sony                  2                3
+Take-Two Interactive  6                0
+
+
+Q13) (8 points)
+Redo the previous question using the following layout. 
+
+Expected output:
+name                  game_platform           number_of_games
+--------------------  ----------------------  ---------------
+Activision            games published         8
+Microsoft             games published         2
+Microsoft             platforms manufactured  1
+Nintendo              games published         32
+Nintendo              platforms manufactured  8
+Sony                  games published         2
+Sony                  platforms manufactured  3
+Take-Two Interactive  games published         6
+
+
+Q14) (8 points)
+Find develpers that have published both Shooter and Puzzle games.
+
+Expected output:
+name
+--------
+Nintendo
+
+
+Q15) (8 points)
+Find names of platforms that have racing games but have no action games.
+
+Expected Result:
+platform_name
+-------------
+3DS
+Wii
+

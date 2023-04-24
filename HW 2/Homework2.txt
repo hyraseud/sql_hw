@@ -1,0 +1,320 @@
+CS 348 - Homework 2: SQL (Subqueries, correlated subqueries, building complex SQL)
+(100 Points)
+Fall 2022
+
+Due on: 9/26/2022 at 11:59 pm 
+This assignment is to be completed by individuals. 
+There will be a 10% penalty if the homework is submitted 24 hours after the due date, a 20% penalty if the homework is submitted 48 hours after the due date, or a 30% penalty if the homework is submitted 72 hours after the due date. The homework will not be accepted after 72 hours, as a solution will be posted by then.
+
+Submission Instructions: 
+Submit your answers using the hw2.py skeleton file included with this assignment (look at the homework tab in Brightspace/content). The python file is read by the autograder. It is important to have a syntax-error free file. The first and most important step is to write your Purdue username in the username function. Then, write your queries in the query1 to query15 functions. Your query answer should have the same attributes(columns) exactly in the same order as the expected result shown in each question. However, the rows can be in any order (i.e., you do not need to sort your rows). Before submitting your Python file execute the file using the command: Python3 hw2.py The output should contain all of your queries. Getting the correct output ensures that the autograder will be able to read your queries.
+
+Submit your hw1.py in Brightspace/Assignments/Assignment 2
+Make sure you submit the right file. 
+
+Database import instructions:
+For this assignment, use vieo_games.db SQLite database included in HW1. You can open the database by simply typing .open video_games.db in the SQLite shell. For nice layout in SQLite shell, run the commands 
+.mode column 
+.headers on
+
+Grading:
+This assignment will be auto-graded using SQLite. You are highly encouraged to use the same database to test your queries before submitting your assignment. Grading will use a different data set than the one given to students to test their queries. Therefore, make sure your queries are robust and that they work on any data instance. There is no partial credit in this homework.
+
+===================================================================
+
+
+Database:
+
+This database is a modified version of the following dataset about video games sales.
+Dataset source: https://www.kaggle.com/datasets/gregorut/videogamesales
+
+Database Schema:
+
+CREATE TABLE video_game(
+   rank integer PRIMARY KEY,
+   name text,
+   platform_id integer, // foriegn key to platform.platform_id
+   year integer,
+   genre text,
+   publisher_id integer // foriegn key to developer.id
+); 
+// platform is the console where users can play the video game (e.g., PlayStation 4)
+// publisher is the company/developr that developed the game
+
+
+CREATE TABLE region(
+   id integer PRIMARY KEY,
+   name text,
+   population integer
+);
+
+CREATE TABLE games_sales(
+   region_id integer, // foreign key to region.id
+   game_rank integer, // foreign key to video_game.rank
+   sales real,
+   PRIMARY KEY (region_id, game_rank)
+);
+
+CREATE TABLE developer(
+   id integer PRIMARY KEY,
+   name text,
+   headquarters text
+);
+
+CREATE TABLE platform(
+   platform_id integer PRIMARY KEY,
+   platform_name text,
+   introductory_price_us integer,
+   units_sold integer,
+   developer_id integer  // foreign key to developer.id
+);
+
+
+Q1) (6 points) Find the most recent games in the video_game table (i.e., games released in the most recent year in the table).
+
+Expected Result:
+rank  name                       platform_id  year  genre    publisher_id
+----  -------------------------  -----------  ----  -------  ------------
+34    Call of Duty: Black Ops 3  9            2015  Shooter  1
+
+
+Q2) (6 points) Find genre(s) that have the largest number of games.
+
+Expected Result:
+genre    number_of_games
+-------  ---------------
+Shooter  10
+
+
+Q3) (6 points) Find the number of games in each genre. Keep genres whose number is above the average number of games. For example, in the sample dataset, the average number of games in a genre is 5. Therefore, we keep genres with more than 5 games.
+
+Expected output:
+genre         games_in_genre
+------------  --------------
+Action        7
+Platform      8
+Role-Playing  8
+Shooter       10
+
+
+Q4) (6 points) List platform(s) that achieved the highest revenue, where revenue is computed as the number of units sold * the introductory price in the US.
+
+Expected Result:
+platform_name  units_sold  introductory_price_us  revenue      developer_name
+-------------  ----------  ---------------------  -----------  --------------
+PS2            155000000   300                    46500000000  Sony
+
+
+Q5) (7 points) For each publisher, find the game(s) that achieved the highest total sales for the publisher (consider only publishers who have games).
+
+Expected Result:
+rank  name                            platform_name  publisher             p_man      total_sales
+----  ------------------------------  -------------  --------------------  ---------  -----------
+1     Wii Sports                      Wii            Nintendo              Nintendo   82.74
+16    Kinect Adventures!              X360           Microsoft             Microsoft  21.82
+17    Grand Theft Auto V              PS3            Take-Two Interactive  Sony       21.39
+29    Gran Turismo 3: A-Spec          PS2            Sony                  Sony       14.97
+30    Call of Duty: Modern Warfare 3  X360           Activision            Microsoft  14.76
+
+
+Q6) (6 points) Find games whose total sales is below the average total sales per game. You will need to compute the toal sales for each game then compute the average for those totals.
+
+Expected Output:
+rank  name                                          platform_name  publisher             p_man      total_sales
+----  --------------------------------------------  -------------  --------------------  ---------  -----------
+20    Brain Age: Train Your Brain in Minutes a Day  DS             Nintendo              Nintendo   20.22
+21    Pokemon Diamond/Pokemon Pearl                 DS             Nintendo              Nintendo   18.35
+22    Super Mario Land                              GB             Nintendo              Nintendo   18.14
+23    Super Mario Bros. 3                           NES            Nintendo              Nintendo   17.28
+24    Grand Theft Auto V                            X360           Take-Two Interactive  Microsoft  16.38
+25    Grand Theft Auto: Vice City                   PS2            Take-Two Interactive  Sony       16.15
+26    Pokemon Ruby/Pokemon Sapphire                 GBA            Nintendo              Nintendo   15.84
+27    Pokemon Black/Pokemon White                   DS             Nintendo              Nintendo   15.32
+28    Brain Age 2: More Training in Minutes a Day   DS             Nintendo              Nintendo   15.3
+29    Gran Turismo 3: A-Spec                        PS2            Sony                  Sony       14.97
+30    Call of Duty: Modern Warfare 3                X360           Activision            Microsoft  14.76
+31    PokAcmon Yellow: Special Pikachu Edition      GB             Nintendo              Nintendo   14.64
+32    Call of Duty: Black Ops                       X360           Activision            Microsoft  14.64
+33    Pokemon X/Pokemon Y                           3DS            Nintendo              Nintendo   14.35
+34    Call of Duty: Black Ops 3                     PS4            Activision            Sony       14.24
+35    Call of Duty: Black Ops II                    PS3            Activision            Sony       14.04
+36    Call of Duty: Black Ops II                    X360           Activision            Microsoft  13.74
+37    Call of Duty: Modern Warfare 2                X360           Activision            Microsoft  13.52
+38    Call of Duty: Modern Warfare 3                PS3            Activision            Sony       13.47
+39    Grand Theft Auto III                          PS2            Take-Two Interactive  Sony       13.1
+40    Super Smash Bros. Brawl                       Wii            Nintendo              Nintendo   13.04
+41    Call of Duty: Black Ops                       PS3            Activision            Sony       12.73
+42    Animal Crossing: Wild World                   DS             Nintendo              Nintendo   12.28
+43    Mario Kart 7                                  3DS            Nintendo              Nintendo   12.21
+44    Halo 3                                        X360           Microsoft             Microsoft  12.14
+45    Grand Theft Auto V                            PS4            Take-Two Interactive  Sony       11.99
+46    Pokemon HeartGold/Pokemon SoulSilver          DS             Nintendo              Nintendo   11.9
+47    Super Mario 64                                N64            Nintendo              Nintendo   11.9
+48    Gran Turismo 4                                PS2            Sony                  Sony       11.65
+49    Super Mario Galaxy                            Wii            Nintendo              Nintendo   11.52
+50    Pokemon Omega Ruby/Pokemon Alpha Sapphire     3DS            Nintendo              Nintendo   11.33
+
+
+Q7) (5 points) Find games whose total sales in North America is above the average. You will need to compute the toal sales for each game in North America then compute the average for those totals. 
+
+Expected Result:
+rank  name                       platform_name  publisher  p_man      NA_total_sales
+----  -------------------------  -------------  ---------  ---------  --------------
+1     Wii Sports                 Wii            Nintendo   Nintendo   41.49
+2     Super Mario Bros.          NES            Nintendo   Nintendo   29.08
+3     Mario Kart Wii             Wii            Nintendo   Nintendo   15.85
+4     Wii Sports Resort          Wii            Nintendo   Nintendo   15.75
+5     Pokemon Red/Pokemon Blue   GB             Nintendo   Nintendo   11.27
+6     Tetris                     GB             Nintendo   Nintendo   23.2
+7     New Super Mario Bros.      DS             Nintendo   Nintendo   11.38
+8     Wii Play                   Wii            Nintendo   Nintendo   14.03
+9     New Super Mario Bros. Wii  Wii            Nintendo   Nintendo   14.59
+10    Duck Hunt                  NES            Nintendo   Nintendo   26.93
+16    Kinect Adventures!         X360           Microsoft  Microsoft  14.97
+19    Super Mario World          SNES           Nintendo   Nintendo   12.78
+22    Super Mario Land           GB             Nintendo   Nintendo   10.83
+
+
+Q8) (3 points) Find the games that match the two conditions in the previous two questions.
+
+Expected Result:
+
+game_name
+Super Mario Land
+
+
+Q9) (6 points) List the toal sales for each game along with the total sales for the game's publisher (total sales for a publisher must include all sales for all games of the publisher).
+
+Expected Result:
+rank  name                                          publisher             total_sales  publisher_sales
+----  --------------------------------------------  --------------------  -----------  ----------------
+1     Wii Sports                                    Nintendo              82.74        739.619999999999
+2     Super Mario Bros.                             Nintendo              40.24        739.619999999999
+3     Mario Kart Wii                                Nintendo              35.83        739.619999999999
+4     Wii Sports Resort                             Nintendo              33.0         739.619999999999
+5     Pokemon Red/Pokemon Blue                      Nintendo              31.38        739.619999999999
+6     Tetris                                        Nintendo              30.26        739.619999999999
+7     New Super Mario Bros.                         Nintendo              30.01        739.619999999999
+8     Wii Play                                      Nintendo              29.01        739.619999999999
+9     New Super Mario Bros. Wii                     Nintendo              28.61        739.619999999999
+10    Duck Hunt                                     Nintendo              28.31        739.619999999999
+11    Nintendogs                                    Nintendo              24.75        739.619999999999
+12    Mario Kart DS                                 Nintendo              23.43        739.619999999999
+13    Pokemon Gold/Pokemon Silver                   Nintendo              23.09        739.619999999999
+14    Wii Fit                                       Nintendo              22.72        739.619999999999
+15    Wii Fit Plus                                  Nintendo              22.0         739.619999999999
+16    Kinect Adventures!                            Microsoft             21.82        33.96
+17    Grand Theft Auto V                            Take-Two Interactive  21.39        99.82
+18    Grand Theft Auto: San Andreas                 Take-Two Interactive  20.81        99.82
+19    Super Mario World                             Nintendo              20.62        739.619999999999
+20    Brain Age: Train Your Brain in Minutes a Day  Nintendo              20.22        739.619999999999
+21    Pokemon Diamond/Pokemon Pearl                 Nintendo              18.35        739.619999999999
+22    Super Mario Land                              Nintendo              18.14        739.619999999999
+23    Super Mario Bros. 3                           Nintendo              17.28        739.619999999999
+24    Grand Theft Auto V                            Take-Two Interactive  16.38        99.82
+25    Grand Theft Auto: Vice City                   Take-Two Interactive  16.15        99.82
+26    Pokemon Ruby/Pokemon Sapphire                 Nintendo              15.84        739.619999999999
+27    Pokemon Black/Pokemon White                   Nintendo              15.32        739.619999999999
+28    Brain Age 2: More Training in Minutes a Day   Nintendo              15.3         739.619999999999
+29    Gran Turismo 3: A-Spec                        Sony                  14.97        26.62
+30    Call of Duty: Modern Warfare 3                Activision            14.76        111.14
+31    PokAcmon Yellow: Special Pikachu Edition      Nintendo              14.64        739.619999999999
+32    Call of Duty: Black Ops                       Activision            14.64        111.14
+33    Pokemon X/Pokemon Y                           Nintendo              14.35        739.619999999999
+34    Call of Duty: Black Ops 3                     Activision            14.24        111.14
+35    Call of Duty: Black Ops II                    Activision            14.04        111.14
+36    Call of Duty: Black Ops II                    Activision            13.74        111.14
+37    Call of Duty: Modern Warfare 2                Activision            13.52        111.14
+38    Call of Duty: Modern Warfare 3                Activision            13.47        111.14
+39    Grand Theft Auto III                          Take-Two Interactive  13.1         99.82
+40    Super Smash Bros. Brawl                       Nintendo              13.04        739.619999999999
+41    Call of Duty: Black Ops                       Activision            12.73        111.14
+42    Animal Crossing: Wild World                   Nintendo              12.28        739.619999999999
+43    Mario Kart 7                                  Nintendo              12.21        739.619999999999
+44    Halo 3                                        Microsoft             12.14        33.96
+45    Grand Theft Auto V                            Take-Two Interactive  11.99        99.82
+46    Pokemon HeartGold/Pokemon SoulSilver          Nintendo              11.9         739.619999999999
+47    Super Mario 64                                Nintendo              11.9         739.619999999999
+48    Gran Turismo 4                                Sony                  11.65        26.62
+49    Super Mario Galaxy                            Nintendo              11.52        739.619999999999
+50    Pokemon Omega Ruby/Pokemon Alpha Sapphire     Nintendo              11.33        739.619999999999
+
+
+Q10) (6 points) Find developers who published the same number of games.
+
+Expected Result:
+name       number_of_games  name  number_of_games
+---------  ---------------  ----  ---------------
+Microsoft  2                Sony  2
+
+
+Q11) (10 points) Consider platform games as the number of games that run on a particular platform. A company's (developer) platform games is the number of games running on the company's platforms. A company published games are games developed by the company. List the number of platform and published games for every company (developer). Include the following comments:
+- 'platform-focused' for companies whose number of platform games is larger than its number of published games.
+- 'publish-focused' for companies whose number of published games is larger than its number of platform games.
+- 'equally-focused' for companies whose number of published games is equal to its number of platform games.
+
+For simplicity, you can assume no companies/developers will have platform games but no published games. 
+
+Expected Result:
+publisher             published_games  paltform_developer  platform_games  type
+--------------------  ---------------  ------------------  --------------  ----------------
+Activision            8                                    0               publish-focused
+Microsoft             2                Microsoft           7               platform-focused
+Nintendo              32               Nintendo            32              equally-focused
+Sony                  2                Sony                11              platform-focused
+Take-Two Interactive  6                                    0               publish-focused
+
+
+Q12) (7 points) Find genres that have the same number of games.
+
+Expected Result:
+genre     games_in_genre  genre         games_in_genre
+--------  --------------  ------------  --------------
+Platform  8               Role-Playing  8
+Puzzle    2               Simulation    2
+
+
+Q13) (6 points) Find number of games in each genre. Include the overall average in each row (i.e., average of the numbers in the second column below).
+
+Expected Result:
+genre         games_in_genre  overall_average
+------------  --------------  ---------------
+Action        7               5.0
+Fighting      1               5.0
+Misc          3               5.0
+Platform      8               5.0
+Puzzle        2               5.0
+Racing        5               5.0
+Role-Playing  8               5.0
+Shooter       10              5.0
+Simulation    2               5.0
+Sports        4               5.0
+
+
+Q14) (10 points) Find total sales in each genre-region pair using the following layout. The total sales column shows total sales in all regions. Assume the only regions in the database are the four ones shown in the result below. 
+
+Expected Result:
+
+genre         NA_sales  EU_sales  JA_sales  Rest_W_sales  total_sales
+------------  --------  --------  --------  ------------  -----------
+Action        49.67     33.56     6.53      21.96         111.72
+Fighting      6.75      2.61      2.66      1.02          13.04
+Misc          33.75     23.4      7.33      6.57          71.05
+Platform      101.27    36.02     32.68     8.35          178.32
+Puzzle        26.64     7.62      9.54      1.76          45.56
+Racing        40.26     29.46     13.56     14.81         98.09
+Role-Playing  53.61     39.23     45.03     6.43          144.3
+Shooter       92.65     41.35     2.77      14.82         151.59
+Simulation    11.62     14.52     7.26      3.63          37.03
+Sports        75.27     56.65     13.18     15.36         160.46
+
+
+Q15) (10 points) Find the best selling genre (considering total sales of a genre games) in each region in the world.
+
+Expected Result:
+region             genre         total_sales
+-----------------  ------------  -----------
+European Union     Sports        56.65
+Japan              Role-Playing  45.03
+North America      Platform      101.27
+Rest of the World  Action        21.96
